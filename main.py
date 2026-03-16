@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 # Configuracion de la app
 st.set_page_config(page_title="K-Means con PCA y Comparativa", layout="wide")
-st.title("📊 Clustering Interactivo con K-Means y PCA")
+st.title("Clustering Interactivo con K-Means y PCA")
 st.write(
     """
 Sube tus datos, aplica **K-Means**, y observa cómo el algoritmo agrupa los puntos en un espacio reducido con **PCA (2D o 3D)**.
@@ -18,7 +18,7 @@ Sube tus datos, aplica **K-Means**, y observa cómo el algoritmo agrupa los punt
 )
 
 # --- Subir archivo ---
-st.sidebar.header("📂 Subir datos")
+st.sidebar.header("Subir datos")
 uploaded_file = st.sidebar.file_uploader("Selecciona tu archivo CSV", type=["csv"])
 
 # Inicializar variables para usar en la función de descarga si no hay archivo cargado
@@ -27,7 +27,7 @@ data = None
 if uploaded_file is not None:
     # 1. Cargar y preprocesar
     data = pd.read_csv(uploaded_file)
-    st.success("✅ Archivo cargado correctamente.")
+    st.success("Archivo cargado correctamente.")
     st.write("### Vista previa de los datos:")
     st.dataframe(data.head())
 
@@ -35,9 +35,9 @@ if uploaded_file is not None:
     numeric_cols = data.select_dtypes(include=["float64", "int64"]).columns.tolist()
 
     if len(numeric_cols) < 2:
-        st.warning("⚠️ El archivo debe contener al menos dos columnas numéricas.")
+        st.warning("El archivo debe contener al menos dos columnas numéricas.")
     else:
-        st.sidebar.header("⚙️ Configuración del modelo")
+        st.sidebar.header("Configuración del modelo")
 
         # Seleccionar columnas a usar
         selected_cols = st.sidebar.multiselect(
@@ -50,14 +50,15 @@ if uploaded_file is not None:
         k = st.sidebar.slider("2. Número de clusters (k):", 1, 10, 3)
         n_components = st.sidebar.radio("3. Visualización PCA:", [2, 3], index=0)
 
-        # --- Parámetros Avanzados de K-Means (NUEVO) ---
+        # --- Parámetros Avanzados de K-Means ---
         st.sidebar.subheader("Parámetros K-Means")
         
         kmeans_init = st.sidebar.selectbox(
             "4. Método de Inicialización (init):",
-            ("k-means++", "random"),
+            ("k-means", "random"),
             index=0,
-            help="k-means++: Selecciona centros iniciales de forma inteligente. random: selecciona centros al azar."
+            help="k-means: Selecciona centros iniciales de forma inteligente. " \
+            "Random: selecciona centros al azar."
         )
 
         kmeans_max_iter = st.sidebar.slider(
@@ -90,14 +91,13 @@ if uploaded_file is not None:
 
         # --- Datos y modelo ---
         X = data[selected_cols]
-        # Aplicamos los parámetros seleccionados
+        # Asignamos los parámetros seleccionados
         kmeans = KMeans(
             n_clusters=k,
             init=kmeans_init,
             max_iter=kmeans_max_iter,
             n_init=kmeans_n_init,
             random_state=random_state_val,
-            # No se usa 'algorithm' ni 'tol' por defecto, pero se podrían añadir aquí.
         )
         
         # Manejo de excepción por si el número de clusters es mayor que el número de muestras
@@ -106,7 +106,7 @@ if uploaded_file is not None:
             data["Cluster"] = kmeans.labels_
         except ValueError as e:
             st.error(f"Error al ejecutar K-Means: {e}. Asegúrate de que el número de clusters (k={k}) no exceda el número de filas en tus datos.")
-            st.stop() # <--- CORRECCIÓN: Usar st.stop() para detener la ejecución en Streamlit
+            st.stop() # Usar st.stop() para detener la ejecución en Streamlit
             
         # --- PCA ---
         pca = PCA(n_components=n_components)
@@ -116,7 +116,7 @@ if uploaded_file is not None:
         pca_df["Cluster"] = data["Cluster"]
 
         # --- Visualización antes del clustering ---
-        st.subheader("📊 Distribución original (antes de K-Means)")
+        st.subheader("Distribución original (antes de K-Means)")
         if n_components == 2:
             fig_before = px.scatter(
                 pca_df,
@@ -137,7 +137,7 @@ if uploaded_file is not None:
         st.plotly_chart(fig_before, use_container_width=True)
 
         # --- Visualización después del clustering ---
-        st.subheader(f"✨ Datos agrupados con K-Means (k = {k})")
+        st.subheader(f"Datos agrupados con K-Means (k = {k})")
         if n_components == 2:
             fig_after = px.scatter(
                 pca_df,
@@ -168,7 +168,7 @@ if uploaded_file is not None:
         st.dataframe(centroides_pca)
 
         # --- Método del Codo ---
-        st.subheader("📉 Método del Codo (Elbow Method)")
+        st.subheader("Método del Codo (Elbow Method)")
         st.write("Herramienta para estimar el valor óptimo de k (clusters).")
         if st.button("Calcular Inercia para K=1 a K=10"):
             inertias = []
@@ -199,20 +199,20 @@ if uploaded_file is not None:
             st.pyplot(fig2)
 
         # --- Descarga de resultados ---
-        st.subheader("⬇️ Descargar datos con clusters asignados")
+        st.subheader("⬇Descargar datos con clusters asignados")
         buffer = BytesIO()
         # Aseguramos que la columna 'Cluster' se guarde
         data.to_csv(buffer, index=False)
         buffer.seek(0)
         st.download_button(
-            label="💾 Descargar CSV con Clusters",
+            label="Descargar CSV con Clusters",
             data=buffer,
             file_name="datos_clusterizados.csv",
             mime="text/csv",
         )
 
 else:
-    st.info("👆 Carga un archivo CSV en la barra lateral para comenzar.")
+    st.info("Carga un archivo CSV en la barra lateral para comenzar.")
     st.write(
         """
     **Ejemplo de formato:**
